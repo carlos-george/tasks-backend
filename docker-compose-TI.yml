@@ -1,0 +1,109 @@
+version: "3.1"
+
+services:
+  tasks-db:
+    container_name: tasks_db
+    image: postgres:9.6
+    environment:
+      POSTGRES_DB: "tasks"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1234567"
+    ports:
+      - "5432:5432"
+    networks:
+      - sonarnet
+
+  # pgadmin:
+  #   container_name: pgadmin
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: "bolinha@gmail.com"
+  #     PGADMIN_DEFAULT_PASSWORD: "123456"
+  #   ports:
+  #     - "6543:80"
+  #   depends_on:
+  #     - tasks-db
+  #   networks:
+  #     - sonarnet
+
+  sonarqube:
+    container_name: sonarqube
+    image: sonarqube:7.9.2-community
+    depends_on:
+      - sonar-db
+    ports:
+      - "9000:9000"
+    networks:
+      - sonarnet
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5433/sonar
+      SONAR_JDBC_USERNAME: "sonar"
+      SONAR_JDBC_PASSWORD: "sonar"
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_temp:/opt/sonarqube/temp
+      - sonarqube_bundle-plugins:/opt/sonarqube/lib/bundle-plugins
+
+  sonar-db:
+    container_name: sonar_db
+    image: postgres:9.6
+    ports:
+      - "5433:5432"
+    networks:
+      - sonarnet
+    environment:
+      POSTGRES_USER: "sonar"
+      POSTGRES_PASSWORD: "sonar"
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+
+  # selenium-hub:
+  #   image: selenium/hub:3.141.59-zinc
+  #   container_name: selenium-hub
+  #   networks:
+  #     - seleniumGrid
+  #   ports:
+  #     - "4444:4444"
+
+  # chrome:
+  #   image: selenium/node-chrome:3.141.59-zinc
+  #   container_name: Chrome-1
+  #   networks:
+  #     - seleniumGrid
+  #   depends_on:
+  #     - selenium-hub
+  #   environment:
+  #     - HUB_HOST=selenium-hub
+  #     - HUB_PORT=4444
+  #     - NODE_MAX_INSTANCES=2
+  #     - NODE_MAX_SESSIONS=2
+
+  # chrome2:
+  #   image: selenium/node-chrome:3.141.59-zinc
+  #   container_name: Chrome-2
+  #   networks:
+  #     - seleniumGrid
+  #   depends_on:
+  #     - selenium-hub
+  #   environment:
+  #     - HUB_HOST=selenium-hub
+  #     - HUB_PORT=4444
+  #     - NODE_MAX_INSTANCES=2
+  #     - NODE_MAX_SESSIONS=2
+
+networks:
+  sonarnet:
+
+volumes:
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonarqube_temp:
+  sonarqube_bundle-plugins:
+  postgresql:
+  postgresql_data:
